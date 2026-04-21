@@ -18,7 +18,7 @@ export default function Router() {
           }
         />
 
-        <Route path="*" element={<Navigate to="/chat" />} />
+        <Route path="*" element={<Navigate to="/chat" replace />} />
       </Routes>
     </BrowserRouter>
   );

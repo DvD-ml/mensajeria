@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
@@ -10,15 +10,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
 
     try {
       await login(email, password);
       navigate("/chat");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("Error al iniciar sesión");
+      }
     }
   }
 
@@ -32,7 +36,8 @@ export default function LoginPage() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <br /><br />
+        <br />
+        <br />
 
         <input
           placeholder="Password"
@@ -40,7 +45,8 @@ export default function LoginPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-        <br /><br />
+        <br />
+        <br />
 
         <button type="submit">Entrar</button>
       </form>
