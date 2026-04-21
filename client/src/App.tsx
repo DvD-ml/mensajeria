@@ -1,8 +1,12 @@
-export default function App() {
+import Router from "./app/router";
+import { AuthProvider } from "./context/AuthContext";
+
+function App() {
   return (
-    <main style={{ padding: "2rem", fontFamily: "Arial, sans-serif" }}>
-      <h1>Mensajería Empresa</h1>
-      <p>Frontend funcionando correctamente.</p>
-    </main>
+    <AuthProvider>
+      <Router />
+    </AuthProvider>
   );
 }
+
+export default App;
