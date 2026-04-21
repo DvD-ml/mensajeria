@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function LoginPage() {
@@ -33,6 +33,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit}>
         <input
           placeholder="Email"
+          type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
@@ -52,6 +53,10 @@ export default function LoginPage() {
       </form>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
+
+      <p style={{ marginTop: 16 }}>
+        ¿No tienes cuenta? <Link to="/register">Regístrate</Link>
+      </p>
     </div>
   );
 }

@@ -10,7 +10,7 @@ export default function ProtectedRoute({ children }: Props) {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <p>Cargando...</p>;
+    return <p style={{ padding: 40 }}>Cargando...</p>;
   }
 
   if (!user) {

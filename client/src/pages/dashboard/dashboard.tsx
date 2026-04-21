@@ -16,7 +16,8 @@ export default function DashboardPage() {
       <p>Bienvenido {user?.nombreMostrar}</p>
       <p>Email: {user?.email}</p>
       <p>Rol: {user?.rol}</p>
-
+{/*       <p>Empresa: {user?.empresa}</p>
+ */}
       <button onClick={handleLogout}>Cerrar sesión</button>
     </div>
   );

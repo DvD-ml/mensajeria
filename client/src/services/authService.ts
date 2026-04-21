@@ -33,6 +33,32 @@ export async function loginRequest(email: string, password: string) {
   };
 }
 
+export async function registroInicialRequest(payload: {
+  nombre: string;
+  apellidos?: string;
+  email: string;
+  password: string;
+}) {
+  const response = await fetch(`${API_URL}/registro-inicial`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      empresaNombre: "Empresa Demo", // 👈 oculto
+      ...payload,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok) {
+    throw new Error(data.message || "Error al registrarse");
+  }
+
+  return data;
+}
+
 export async function meRequest() {
   const token = localStorage.getItem("token");
 

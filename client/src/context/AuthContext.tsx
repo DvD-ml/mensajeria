@@ -11,6 +11,7 @@ type AuthContextType = {
   user: UsuarioAuth | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
+  setAuthAfterRegister: (token: string, usuario: UsuarioAuth) => void;
   logout: () => void;
 };
 
@@ -47,13 +48,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(data.usuario);
   }
 
+  function setAuthAfterRegister(token: string, usuario: UsuarioAuth) {
+    localStorage.setItem("token", token);
+    setUser(usuario);
+  }
+
   function logout() {
     localStorage.removeItem("token");
     setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider
+      value={{ user, loading, login, setAuthAfterRegister, logout }}
+    >
       {children}
     </AuthContext.Provider>
   );
