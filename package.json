@@ -1,0 +1,9 @@
+{
+  "name": "mensajeria",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "build:server": "cd server && npm run build"
+  }
+}
