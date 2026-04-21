@@ -1,0 +1,206 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+enum EstadoPresencia {
+  ONLINE
+  OFFLINE
+  OCUPADO
+  AUSENTE
+}
+
+enum EstadoCuenta {
+  PENDIENTE
+  ACTIVA
+  SUSPENDIDA
+  ELIMINADA
+}
+
+enum TipoCanal {
+  PUBLICO
+  PRIVADO
+}
+
+enum TipoMensaje {
+  TEXTO
+  SISTEMA
+  ARCHIVO
+  IMAGEN
+}
+
+enum RolMiembroCanal {
+  PROPIETARIO
+  MODERADOR
+  MIEMBRO
+}
+
+model Rol {
+  id           Int       @id @default(autoincrement())
+  nombre       String    @unique @db.VarChar(50)
+  descripcion  String?   @db.VarChar(255)
+  esSistema    Boolean   @default(true) @map("es_sistema")
+  creadoEn     DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime @updatedAt @map("actualizado_en")
+
+  usuarios Usuario[]
+
+  @@map("roles")
+}
+
+model Empresa {
+  id            Int       @id @default(autoincrement())
+  nombre        String    @db.VarChar(120)
+  slug          String    @unique @db.VarChar(150)
+  descripcion   String?
+  activa        Boolean   @default(true)
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime  @updatedAt @map("actualizado_en")
+
+  departamentos Departamento[]
+  equipos       Equipo[]
+  usuarios      Usuario[]
+  canales       Canal[]
+  mensajes      Mensaje[]
+
+  @@map("empresas")
+}
+
+model Departamento {
+  id            Int       @id @default(autoincrement())
+  empresaId     Int       @map("empresa_id")
+  nombre        String    @db.VarChar(100)
+  descripcion   String?   @db.VarChar(255)
+  activo        Boolean   @default(true)
+  creadoEn      DateTime  @default(now()) @map("creado_en")
+  actualizadoEn DateTime  @updatedAt @map("actualizado_en")
+
+  empresa  Empresa  @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  usuarios Usuario[]
+  equipos  Equipo[]
+  canales  Canal[]
+
+  @@unique([empresaId, nombre])
+  @@map("departamentos")
+}
+
+model Equipo {
+  id               Int       @id @default(autoincrement())
+  empresaId        Int       @map("empresa_id")
+  departamentoId   Int?      @map("departamento_id")
+  nombre           String    @db.VarChar(100)
+  descripcion      String?   @db.VarChar(255)
+  activo           Boolean   @default(true)
+  creadoEn         DateTime  @default(now()) @map("creado_en")
+  actualizadoEn    DateTime  @updatedAt @map("actualizado_en")
+
+  empresa          Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  departamento     Departamento? @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  usuariosPrincipales Usuario[] @relation("EquipoPrincipal")
+  canales          Canal[]
+
+  @@unique([empresaId, nombre])
+  @@map("equipos")
+}
+
+model Usuario {
+  id                Int              @id @default(autoincrement())
+  empresaId         Int              @map("empresa_id")
+  rolId             Int              @map("rol_id")
+  departamentoId    Int?             @map("departamento_id")
+  equipoPrincipalId Int?             @map("equipo_principal_id")
+  nombre            String           @db.VarChar(80)
+  apellidos         String?          @db.VarChar(120)
+  nombreMostrar     String           @map("nombre_mostrar") @db.VarChar(150)
+  email             String           @unique @db.VarChar(150)
+  contrasenaHash    String           @map("contrasena_hash") @db.VarChar(255)
+  cargo             String?          @db.VarChar(120)
+  avatarUrl         String?          @map("avatar_url") @db.VarChar(255)
+  estadoPresencia   EstadoPresencia  @default(OFFLINE) @map("estado_presencia")
+  estadoCuenta      EstadoCuenta     @default(ACTIVA) @map("estado_cuenta")
+  ultimoLogin       DateTime?        @map("ultimo_login")
+  creadoEn          DateTime         @default(now()) @map("creado_en")
+  actualizadoEn     DateTime         @updatedAt @map("actualizado_en")
+
+  empresa           Empresa          @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  rol               Rol              @relation(fields: [rolId], references: [id], onDelete: Restrict)
+  departamento      Departamento?    @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  equipoPrincipal   Equipo?          @relation("EquipoPrincipal", fields: [equipoPrincipalId], references: [id], onDelete: SetNull)
+
+  canalesCreados    Canal[]          @relation("CanalesCreados")
+  miembrosCanal     MiembroCanal[]
+  mensajesEnviados  Mensaje[]        @relation("MensajesEnviados")
+
+  @@map("usuarios")
+}
+
+model Canal {
+  id            Int         @id @default(autoincrement())
+  empresaId     Int         @map("empresa_id")
+  departamentoId Int?       @map("departamento_id")
+  equipoId      Int?        @map("equipo_id")
+  creadoPorId   Int         @map("creado_por")
+  nombre        String      @db.VarChar(100)
+  slug          String      @db.VarChar(120)
+  descripcion   String?     @db.VarChar(255)
+  tipoCanal     TipoCanal   @default(PUBLICO) @map("tipo_canal")
+  archivado     Boolean     @default(false)
+  archivadoEn   DateTime?   @map("archivado_en")
+  creadoEn      DateTime    @default(now()) @map("creado_en")
+  actualizadoEn DateTime    @updatedAt @map("actualizado_en")
+
+  empresa       Empresa      @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  departamento  Departamento? @relation(fields: [departamentoId], references: [id], onDelete: SetNull)
+  equipo        Equipo?      @relation(fields: [equipoId], references: [id], onDelete: SetNull)
+  creadoPor     Usuario      @relation("CanalesCreados", fields: [creadoPorId], references: [id], onDelete: Restrict)
+
+  miembros      MiembroCanal[]
+  mensajes      Mensaje[]
+
+  @@unique([empresaId, slug])
+  @@map("canales")
+}
+
+model MiembroCanal {
+  id          Int             @id @default(autoincrement())
+  canalId     Int             @map("canal_id")
+  usuarioId   Int             @map("usuario_id")
+  rolMiembro  RolMiembroCanal @default(MIEMBRO) @map("rol_miembro")
+  unidoEn     DateTime        @default(now()) @map("unido_en")
+  activo      Boolean         @default(true)
+  creadoEn    DateTime        @default(now()) @map("creado_en")
+
+  canal       Canal           @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  usuario     Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@unique([canalId, usuarioId])
+  @@map("miembros_canal")
+}
+
+model Mensaje {
+  id              Int         @id @default(autoincrement())
+  empresaId       Int         @map("empresa_id")
+  remitenteId     Int         @map("remitente_id")
+  canalId         Int         @map("canal_id")
+  mensajePadreId  Int?        @map("mensaje_padre_id")
+  tipoMensaje     TipoMensaje @default(TEXTO) @map("tipo_mensaje")
+  contenido       String?     @db.Text
+  editado         Boolean     @default(false)
+  editadoEn       DateTime?   @map("editado_en")
+  eliminado       Boolean     @default(false)
+  eliminadoEn     DateTime?   @map("eliminado_en")
+  creadoEn        DateTime    @default(now()) @map("creado_en")
+  actualizadoEn   DateTime    @updatedAt @map("actualizado_en")
+
+  empresa         Empresa     @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  remitente       Usuario     @relation("MensajesEnviados", fields: [remitenteId], references: [id], onDelete: Cascade)
+  canal           Canal       @relation(fields: [canalId], references: [id], onDelete: Cascade)
+  mensajePadre    Mensaje?    @relation("HiloMensajes", fields: [mensajePadreId], references: [id], onDelete: Cascade)
+  respuestas      Mensaje[]   @relation("HiloMensajes")
+
+  @@map("mensajes")
+}
